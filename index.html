@@ -1,205 +1,508 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>DSE 2026 Allotment Search</title>
-<style>
-  :root{
-    --ink:#1b1f23; --sub:#5b6570; --line:#e2e6ea; --bg:#f7f8fa;
-    --accent:#0f6e5f; --accent-dark:#0b5449; --card:#ffffff;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg); color:var(--ink);
-  }
-  header{
-    background:var(--accent); color:#fff; padding:28px 20px 22px;
-  }
-  header h1{margin:0 0 4px; font-size:22px; font-weight:700;}
-  header p{margin:0; font-size:13px; opacity:.85;}
-  main{max-width:960px; margin:0 auto; padding:22px 20px 60px;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DSE 2026 CAP-II Allotment Search</title>
+  <style>
+    :root{
+      --bg:#f5f7f9; --card:#ffffff; --muted:#556069; --accent:#066d5a; --accent-2:#0b5a4b;
+      --line:#e6eef0; --danger:#b00020; --radius:12px; --glass: rgba(255,255,255,0.6);
+      --shadow: 0 6px 18px rgba(14,20,25,0.06);
+      --font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:var(--font-sans);background:linear-gradient(180deg,#f7fafb 0%, #f3f6f8 100%);color:#0f1720}
 
-  .searchbar{
-    display:flex; gap:10px; margin-bottom:6px;
-  }
-  .searchbar input{
-    flex:1; padding:14px 16px; font-size:16px; border:1px solid var(--line);
-    border-radius:10px; outline:none; background:var(--card);
-  }
-  .searchbar input:focus{border-color:var(--accent);}
-  .hint{font-size:12.5px; color:var(--sub); margin:8px 0 22px;}
-  .status{font-size:13px; color:var(--sub); margin-bottom:14px;}
+    header{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:30px 18px 28px}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    header .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    header h1{margin:0;font-size:20px;letter-spacing:0.2px}
+    header p{margin:6px 0 0;opacity:0.95;font-size:13px}
 
-  .result-card{
-    background:var(--card); border:1px solid var(--line); border-radius:12px;
-    padding:16px 18px; margin-bottom:14px;
-  }
-  .result-card .college{
-    font-weight:700; font-size:15.5px; color:var(--accent-dark); margin-bottom:2px;
-  }
-  .result-card .code{color:var(--sub); font-weight:500; font-size:12.5px;}
-  .result-card .branch{font-size:14.5px; margin:6px 0 10px; font-weight:600;}
-  .tags{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
-  .tag{
-    font-size:11.5px; padding:3px 9px; border-radius:99px; background:#eef4f2;
-    color:var(--accent-dark); border:1px solid #d9e8e4; white-space:nowrap;
-  }
-  .tag.round{
-    background:#eaf1fb; color:#1c4e8a; border:1px solid #d3e2f5; font-weight:700;
-  }
-  table.details{width:100%; border-collapse:collapse; font-size:13px;}
-  table.details td{padding:4px 8px 4px 0; color:var(--sub);}
-  table.details td.val{color:var(--ink); font-weight:600;}
+    main{max-width:1100px;margin:18px auto;padding:18px}
+    /* move search card up to overlap hero */
+    .search-panel{margin-top:-48px}
 
-  .empty{
-    text-align:center; padding:50px 20px; color:var(--sub); font-size:14px;
-  }
-  .loadfail{
-    background:#fdecec; border:1px solid #f3c7c7; color:#8a2c2c;
-    padding:14px 16px; border-radius:10px; font-size:13.5px; line-height:1.5;
-  }
-  code{background:#eee; padding:1px 5px; border-radius:4px; font-size:12.5px;}
+    /* Hero background pattern (subtle hexagon-like) */
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;opacity:0.04;
+      background-image:
+        linear-gradient(30deg, rgba(0,0,0,0.02) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.02) 87.5%, rgba(0,0,0,0.02)),
+        linear-gradient(150deg, rgba(0,0,0,0.02) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.02) 87.5%, rgba(0,0,0,0.02));
+      background-size:24px 42px;transform:translateZ(0);
+    }
 
-  .social-links{
-    display:flex; gap:10px; margin-top:14px;
-  }
-  .social-links a{
-    display:inline-flex; align-items:center; gap:6px;
-    font-size:12.5px; font-weight:700; text-decoration:none;
-    color:#fff; background:rgba(255,255,255,.14);
-    border:1px solid rgba(255,255,255,.35);
-    padding:7px 13px; border-radius:99px;
-    transition:background .15s ease;
-  }
-  .social-links a:hover{background:rgba(255,255,255,.26);}
-  .social-links svg{width:14px; height:14px; flex-shrink:0;}
-</style>
+    .search-panel{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px}
+    .search-main{display:flex;flex-direction:column;gap:12px}
+    .search-row{display:flex;gap:10px}
+    input[type="text"], select{width:100%;padding:14px 14px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:#fff}
+    input[type="text"]:focus, select:focus{outline:2px solid rgba(6,109,90,0.12);border-color:var(--accent)}
+    .actions{display:flex;gap:8px}
+    button{padding:10px 14px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-muted{background:#eef3f2;color:var(--accent-2)}
+
+    .filters{display:flex;gap:10px;align-items:center}
+    .filters select{min-width:180px}
+
+    .status{font-size:13px;color:var(--muted);margin-top:6px}
+
+    .results-meta{margin:18px 0 10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .count{font-weight:700;color:var(--accent-2)}
+
+    .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+    /* College results table */
+    .college-results { background:var(--card); border-radius:12px; padding:12px; border:1px solid var(--line); }
+    table.students { width:100%; border-collapse:collapse; font-size:14px }
+    table.students th, table.students td { padding:8px 10px; border-bottom:1px solid #f1f4f3; text-align:left }
+    table.students th { font-weight:700; color:var(--accent-2); font-size:13px }
+    .students-info { display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:8px }
+    .load-more { display:inline-block; margin-top:10px; padding:8px 12px; border-radius:10px; background:#eef7f4; color:var(--accent-2); border:1px solid #e2f1ec; cursor:pointer }
+    .student-card { border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--card); }
+    .card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--line);box-shadow:0 6px 18px rgba(12,20,26,0.04)}
+    .card .top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .college{font-weight:800;color:var(--accent-2);font-size:15px}
+    .codes{font-size:12px;color:var(--muted)}
+    .branch{margin:8px 0;font-weight:700}
+    .tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+    .pill{background:#f2f8f6;color:var(--accent-2);padding:6px 9px;border-radius:999px;font-size:12px;border:1px solid #e2f1ec}
+
+    .details{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:var(--muted)}
+    .details .k{font-weight:600;color:#123}
+
+    .empty{padding:30px;text-align:center;color:var(--muted)}
+
+    footer{margin:34px 0 60px;text-align:center;color:var(--muted);font-size:13px}
+    .footer-grid{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .footer-left{font-size:13px;color:var(--muted)}
+    .social-footer{display:flex;gap:10px;align-items:center}
+    .social-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:#ffffff;border:1px solid rgba(15,23,32,0.06);border-radius:10px;color:var(--body-color, #0f1720);text-decoration:none;font-weight:700;font-size:13px;box-shadow:0 6px 14px rgba(15,23,32,0.06);transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+    .social-btn svg{width:16px;height:16px;display:block;flex-shrink:0}
+    .social-btn:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(15,23,32,0.12);background:#fbfdfb}
+
+    /* Header layout tweaks for responsiveness */
+    header .top{display:flex;align-items:stretch;gap:18px}
+    .hero-right{border-left:1px solid rgba(255,255,255,0.06);padding-left:18px}
+    @media (max-width:880px){
+      header .top{flex-direction:column;align-items:flex-start}
+      .hero-right{border-left:none;padding-left:0;margin-top:8px}
+      .hero-right .social-btn{padding:8px 10px;font-size:13px}
+      .social-footer{justify-content:flex-start}
+    }
+
+    /* curved wave near bottom of hero/header */
+    header::after{content:"";display:block;height:36px;background:radial-gradient(1200px 120px at 10% 100%, rgba(255,255,255,0.06), transparent 20%), radial-gradient(1200px 120px at 90% 100%, rgba(255,255,255,0.04), transparent 20%);margin-top:18px;border-bottom-left-radius:60% 30px;border-bottom-right-radius:60% 30px}
+
+    @media (max-width:880px){
+      .search-row{flex-direction:column}
+      .filters{flex-direction:column;align-items:stretch}
+      main{padding:12px}
+      /* table -> cards on mobile */
+      table.students, table.students thead, table.students tbody, table.students th, table.students td, table.students tr { display:block }
+      table.students thead { display:none }
+      table.students tr { margin-bottom:10px }
+      table.students td { border:0; padding:6px 0 }
+      table.students td::before { content:attr(data-label); font-weight:700; display:inline-block; width:110px; color:var(--muted) }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <h1>DSE 2026 &middot; Allotment Search</h1>
-  <p>Search across all downloaded institute allotment lists by Application ID or candidate name.</p>
-  <div class="social-links">
-    <a href="https://www.linkedin.com/in/prathmesh-surywanshi/" target="_blank" rel="noopener noreferrer">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
-      LinkedIn
-    </a>
-    <a href="https://github.com/Prathmesh-Surywanshi" target="_blank" rel="noopener noreferrer">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.2c0 4.5 2.87 8.31 6.84 9.66.5.1.68-.22.68-.5 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .28.18.61.69.5A10.02 10.02 0 0 0 22 12.2C22 6.58 17.52 2 12 2z"/></svg>
-      GitHub
-    </a>
-  </div>
-</header>
-
-<main>
-  <div class="searchbar">
-    <input id="q" type="text" placeholder="Enter Application ID (e.g. DSE26142848) or a name (any word order)..." autofocus>
-  </div>
-  <div class="hint">Tip: Application ID gives an exact match. Name search matches all words you type, in <strong>any order</strong> — e.g. "Kalbhor Chaitanya" and "Chaitanya Kalbhor" both find "CHAITANYA ANIL KALBHOR".</div>
-  <div id="status" class="status"></div>
-  <div id="results"></div>
-</main>
-
-<script>
-let DATA = [];
-let loaded = false;
-
-async function loadData(){
-  try{
-    const res = await fetch('allotment_data.json');
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    DATA = await res.json();
-    loaded = true;
-    document.getElementById('status').textContent =
-      `Loaded ${DATA.length.toLocaleString()} allotment records. Start typing to search.`;
-  }catch(err){
-    document.getElementById('status').innerHTML =
-      `<div class="loadfail">
-        Couldn't load <code>allotment_data.json</code>.<br><br>
-        Make sure this file, <code>search.html</code>, and <code>allotment_data.json</code>
-        are all in the same folder, and that you're opening this page through a local server
-        (not by double-clicking the file). From that folder, run:<br><br>
-        <code>python -m http.server 8000</code><br><br>
-        then open <code>http://localhost:8000/search.html</code> in your browser.
-      </div>`;
-  }
-}
-loadData();
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-}
-
-function renderResults(matches, query){
-  const box = document.getElementById('results');
-  if(!query){
-    box.innerHTML = '';
-    return;
-  }
-  if(matches.length === 0){
-    box.innerHTML = `<div class="empty">No matches found for "${escapeHtml(query)}".</div>`;
-    return;
-  }
-  const capped = matches.slice(0, 200);
-  box.innerHTML = capped.map(r => `
-    <div class="result-card">
-      <div class="college">${escapeHtml(r.college_name)}</div>
-      <div class="code">College Code: ${escapeHtml(r.college_code)} &middot; Branch Code: ${escapeHtml(r.branch_code)}</div>
-      <div class="branch">${escapeHtml(r.branch_name)}</div>
-      <div class="tags">
-        ${r.round ? `<span class="tag round">${escapeHtml(r.round)}</span>` : ''}
-        <span class="tag">${escapeHtml(r.seat_type)}</span>
-        <span class="tag">${escapeHtml(r.category)}</span>
-        <span class="tag">${r.gender === 'M' ? 'Male' : 'Female'}</span>
+  <header>
+    <div class="container">
+      <div class="top" style="display:flex;align-items:stretch;gap:18px">
+        <div class="hero-left" style="display:flex;gap:18px;align-items:center">
+          <div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:2px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04)">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="1" y="1" width="22" height="22" rx="4" stroke="rgba(255,255,255,0.12)"/>
+              <path d="M12 3l7 4-7 4-7-4 7-4z" fill="#fff" opacity="0.95"/>
+              <path d="M5 11v4a7 7 0 0 0 14 0v-4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+            </svg>
+          </div>
+          <div>
+            <h1 style="margin:0;font-size:22px">DSE 2026 CAP-II Allotment Search</h1>
+            <p style="margin:6px 0 0;font-size:14px;opacity:0.95">Find your Direct Second Year Engineering allotment quickly and easily.</p>
+            <div style="margin-top:8px">
+              <span style="display:inline-block;background:rgba(255,255,255,0.08);color:#fff;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px">CAP-II • 2026</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-right" style="margin-left:auto;padding-left:18px;border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:8px">
+          <div style="font-weight:700;font-size:13px">Connect with me</div>
+          <div style="display:flex;gap:8px">
+            <a class="social-btn" href="https://www.linkedin.com/in/swapnali-darekar-89294b313/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+              LinkedIn
+            </a>
+            <a class="social-btn" href="https://github.com/sdarekar1005" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.2c0 4.5 2.87 8.31 6.84 9.66.5.1.68-.22.68-.5 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .28.18.61.69.5A10.02 10.02 0 0 0 22 12.2C22 6.58 17.52 2 12 2z"/></svg>
+              GitHub
+            </a>
+            <a class="social-btn" href="https://www.fiverr.com/sellers/swapnali1005/" target="_blank" rel="noopener noreferrer" aria-label="Fiverr">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.12 13.5c-.36.92-1.12 1.66-2.28 1.66-1.58 0-2.3-1.22-2.3-2.58 0-1.86 1.12-3.1 3.56-3.1h1.02v.86h-.9c-1.62 0-2.24.88-2.24 1.9 0 1.02.6 1.86 1.86 1.86.96 0 1.56-.48 1.86-1.06v.46h.02z"/></svg>
+              Fiverr
+            </a>
+          </div>
+        </div>
       </div>
-      <table class="details">
-        <tr><td>Application ID</td><td class="val">${escapeHtml(r.application_id)}</td>
-            <td>Candidate</td><td class="val">${escapeHtml(r.name)}</td></tr>
-        <tr><td>Merit No.</td><td class="val">${escapeHtml(r.merit_no)}</td>
-            <td>Merit Score</td><td class="val">${escapeHtml(r.merit_score)}</td></tr>
-      </table>
     </div>
-  `).join('');
-  if(matches.length > 200){
-    box.innerHTML += `<div class="empty">Showing first 200 of ${matches.length} matches — refine your search.</div>`;
-  }
-}
+  </header>
 
-function doSearch(){
-  const raw = document.getElementById('q').value.trim();
-  if(!loaded) return;
-  if(!raw){
-    document.getElementById('results').innerHTML = '';
-    return;
-  }
-  const isAppId = /^DSE/i.test(raw) || /^\d{5,}$/.test(raw);
-  let matches;
-  if(isAppId){
-    const needle = raw.toUpperCase().replace(/^DSE/, '');
-    matches = DATA.filter(r => r.application_id.toUpperCase().includes(needle) ||
-                                r.application_id.toUpperCase() === raw.toUpperCase());
-  }else{
-    // Split query into individual words and require every word to appear
-    // somewhere in the candidate's name, in any order/sequence.
-    const words = raw.toUpperCase().split(/\s+/).filter(Boolean);
-    matches = DATA.filter(r => {
-      const name = r.name.toUpperCase();
-      return words.every(w => name.includes(w));
+  <main class="container">
+    <div class="search-panel" aria-labelledby="search-heading">
+      <div class="search-main">
+        <label for="q" id="search-heading" style="font-weight:700">Search</label>
+        <div class="search-row">
+          <div style="position:relative;flex:1">
+            <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:0.6;pointer-events:none;color:var(--muted)"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input id="q" type="text" placeholder="Application ID (e.g. DSE26142848) or candidate name (any word order)" aria-label="Search query" autofocus style="padding-left:40px">
+          </div>
+          <div class="actions">
+            <button id="searchBtn" class="btn-primary" title="Search">
+              <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right:8px"><path fill="#fff" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              Search
+            </button>
+            <button id="clearBtn" class="btn-muted" title="Clear search">
+              <svg viewBox="0 0 24 24" width="14" height="14" style="margin-right:6px"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.3 19.71 2.88 18.29 9.17 12 2.88 5.71 4.3 4.29 10.59 10.6 16.88 4.29z"/></svg>
+              Clear
+            </button>
+          </div>
+        </div>
+        <div class="status" id="status">Loading allotment data…</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px"><strong style="color:var(--accent)">Tip:</strong> Application ID gives an exact match. Name search matches all words in any order.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-weight:700">Filters</div>
+          <div style="flex:1"></div>
+          <div style="background:#eaf6f1;color:var(--accent-2);padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px">CAP-II</div>
+        </div>
+        <div class="filters">
+          <select id="filterCollege" title="College">
+            <option value="All">All Colleges</option>
+          </select>
+          <select id="filterGender" title="Gender">
+            <option value="All">All Genders</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-meta">
+      <div class="count" id="matchCount"></div>
+      <div style="font-size:13px;color:var(--muted)">Showing matches from <strong id="loadedCount">0</strong> records</div>
+    </div>
+
+    <div id="results" class="results"></div>
+
+    <div id="emptyState" class="empty" style="display:none">
+      <svg width="160" height="100" viewBox="0 0 160 100" aria-hidden="true" style="margin-bottom:12px;opacity:0.85">
+        <rect x="10" y="28" width="84" height="56" rx="6" fill="#f6fbf9" stroke="#e6f3ef"/>
+        <path d="M32 46a20 20 0 1 1 40 0" fill="none" stroke="#d6eae5" stroke-width="3"/>
+        <circle cx="120" cy="40" r="20" fill="#f1f8f6" stroke="#e2f1ec"/>
+        <path d="M112 36l16 8M112 44l16-8" stroke="#d6eae5" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div style="font-weight:700;margin-bottom:6px">Enter a search to find allotments.</div>
+      <div style="color:var(--muted);max-width:520px;margin:0 auto">Type an Application ID or candidate name and click Search, or press Enter. Use filters to narrow results.</div>
+    </div>
+
+    <footer>
+      <div class="footer-grid container">
+        <div class="footer-left">
+          <div style="font-weight:700">DSE 2026 CAP-II Allotment Search</div>
+          <div style="margin-top:6px">Built with HTML, CSS & JavaScript</div>
+        </div>
+        <div class="social-footer" aria-label="Connect with me">
+          <a class="social-btn" href="https://www.linkedin.com/in/swapnali-darekar-89294b313/" target="_blank" rel="noopener noreferrer" title="LinkedIn - opens in a new tab" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+            LinkedIn
+          </a>
+          <a class="social-btn" href="https://github.com/sdarekar1005" target="_blank" rel="noopener noreferrer" title="GitHub - opens in a new tab" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.2c0 4.5 2.87 8.31 6.84 9.66.5.1.68-.22.68-.5 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .28.18.61.69.5A10.02 10.02 0 0 0 22 12.2C22 6.58 17.52 2 12 2z"/></svg>
+            GitHub
+          </a>
+          <a class="social-btn" href="https://www.fiverr.com/sellers/swapnali1005/" target="_blank" rel="noopener noreferrer" title="Fiverr - opens in a new tab" aria-label="Fiverr">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.12 13.5c-.36.92-1.12 1.66-2.28 1.66-1.58 0-2.3-1.22-2.3-2.58 0-1.86 1.12-3.1 3.56-3.1h1.02v.86h-.9c-1.62 0-2.24.88-2.24 1.9 0 1.02.6 1.86 1.86 1.86.96 0 1.56-.48 1.86-1.06v.46h.02z"/></svg>
+            Fiverr
+          </a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // Preserve original data-loading and search logic while enhancing UI and filters.
+    let DATA = [];
+    let loaded = false;
+
+    const statusEl = document.getElementById('status');
+    const qEl = document.getElementById('q');
+    const resultsEl = document.getElementById('results');
+    const matchCountEl = document.getElementById('matchCount');
+    const loadedCountEl = document.getElementById('loadedCount');
+    const emptyStateEl = document.getElementById('emptyState');
+
+    const filterCollege = document.getElementById('filterCollege');
+    const filterGender = document.getElementById('filterGender');
+
+    async function loadData(){
+      try{
+        statusEl.textContent = 'Loading allotment_data.json — please wait…';
+        const res = await fetch('allotment_data.json');
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        DATA = await res.json();
+        loaded = true;
+        loadedCountEl.textContent = DATA.length.toLocaleString();
+        statusEl.innerHTML = `Loaded <strong style="color:var(--accent)">${DATA.length.toLocaleString()}</strong> allotment records.`;
+        populateFilterOptions();
+      }catch(err){
+        statusEl.innerHTML = `<div style="background:#fdecec;border:1px solid #f3c7c7;color:#8a2c2c;padding:12px;border-radius:8px">Couldn't load <code>allotment_data.json</code>. Run a local server: <code>python -m http.server 8000</code> and open <code>http://localhost:8000/</code></div>`;
+      }
+    }
+    loadData();
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
+    }
+
+    function populateFilterOptions(){
+      // Gather unique values from DATA for college name and gender
+      const colleges = new Set();
+      const genders = new Set();
+      DATA.forEach(r => {
+        if(r.college_name) colleges.add(String(r.college_name).trim());
+        if(r.gender) genders.add(String(r.gender).trim());
+      });
+
+      const addOptions = (sel, values, labelFn) => {
+        const arr = Array.from(values).sort((a,b)=> a.localeCompare(b));
+        arr.forEach(v => {
+          const opt = document.createElement('option'); opt.value = v; opt.textContent = labelFn ? labelFn(v) : v; sel.appendChild(opt);
+        });
+      };
+      addOptions(filterCollege, colleges);
+      addOptions(filterGender, genders, v => {
+        const up = String(v).toUpperCase();
+        if(up === 'M') return 'Male';
+        if(up === 'F') return 'Female';
+        return v;
+      });
+      // ensure default selections
+      filterCollege.value = 'All';
+      filterGender.value = 'All';
+    }
+
+    function renderResults(matches, query){
+      matchCountEl.textContent = `${matches.length.toLocaleString()} allotment(s) found`;
+      if(!query){ resultsEl.innerHTML = ''; emptyStateEl.style.display = 'block'; return; }
+      emptyStateEl.style.display = 'none';
+      if(matches.length === 0){ resultsEl.innerHTML = `<div class="empty">No matches for "${escapeHtml(query)}"</div>`; return; }
+
+      const capped = matches.slice(0, 200);
+      resultsEl.innerHTML = capped.map(r => {
+        const genderLabel = (r.gender === 'M' ? 'Male' : (r.gender === 'F' ? 'Female' : (r.gender || '')));
+        return `
+          <article class="card" role="article">
+            <div class="top">
+              <div>
+                <div class="college">${escapeHtml(r.college_name || '')}</div>
+                <div class="codes">College Code: ${escapeHtml(r.college_code || '')} · Branch Code: ${escapeHtml(r.branch_code || '')}</div>
+              </div>
+              <div style="text-align:right;font-size:12px;color:${'#556069'}"><span style="background:#eaf6f1;padding:6px 8px;border-radius:999px;font-weight:700">CAP-II</span></div>
+            </div>
+            <div class="branch">${escapeHtml(r.branch_name || '')}</div>
+            <div class="tags">
+              ${r.seat_type ? `<span class="pill">${escapeHtml(r.seat_type)}</span>` : ''}
+              ${r.category ? `<span class="pill">${escapeHtml(r.category)}</span>` : ''}
+              ${genderLabel ? `<span class="pill">${escapeHtml(genderLabel)}</span>` : ''}
+            </div>
+            <div class="details">
+              <div><div class="k">Application ID</div><div>${escapeHtml(r.application_id || '')}</div></div>
+              <div><div class="k">Candidate</div><div>${escapeHtml(r.name || '')}</div></div>
+              <div><div class="k">Merit No.</div><div>${escapeHtml(r.merit_no || '')}</div></div>
+              <div><div class="k">Merit Score</div><div>${escapeHtml(r.merit_score || '')}</div></div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      if(matches.length > 200){
+        resultsEl.innerHTML += `<div class="empty">Showing first 200 of ${matches.length.toLocaleString()} matches — please refine your search.</div>`;
+      }
+    }
+
+    // Keep exact same search semantics for Application ID and advanced name search
+    function normalize(v){
+      try{ return String(v||'').trim().toUpperCase(); }catch(e){ return '' }
+    }
+
+    function doSearch(){
+      const raw = qEl.value.trim();
+      if(!loaded) return;
+      const collegeSelected = (normalize(filterCollege.value) !== 'ALL' && normalize(filterCollege.value) !== '');
+      // If no search and no college selected, show empty state
+      if(!raw && !collegeSelected){ resultsEl.innerHTML = ''; matchCountEl.textContent = ''; emptyStateEl.style.display='block'; return; }
+      const isAppId = /^DSE/i.test(raw) || /^\d{5,}$/.test(raw);
+      let matches = [];
+      try{
+        if(isAppId){
+          const needle = raw.toUpperCase().replace(/^DSE/, '');
+          matches = DATA.filter(r => {
+            try{
+              const aid = normalize(r.application_id);
+              return aid.includes(needle) || aid === raw.toUpperCase();
+            }catch(e){ return false }
+          });
+        } else {
+          const words = raw.toUpperCase().split(/\s+/).filter(Boolean);
+          matches = DATA.filter(r => {
+            try{
+              const name = normalize(r.name);
+              return words.every(w => name.includes(w));
+            }catch(e){ return false }
+          });
+        }
+      }catch(err){ console.error('Search error', err); matches = []; }
+
+      // If search is empty but a college is selected, show all students for that college
+      const fc = normalize(filterCollege.value);
+      const fg = normalize(filterGender.value);
+      if(!raw && collegeSelected){
+        // Filter DATA by college and gender
+        let collegeMatches = DATA.filter(r => {
+          try{
+            const rc = normalize(r.college_name);
+            if(rc !== fc) return false;
+            if(fg && fg !== 'ALL' && fg !== ''){
+              const rg = normalize(r.gender);
+              if(rg !== fg) return false;
+            }
+            return true;
+          }catch(e){ return false }
+        });
+        // Sort by merit_no ascending (numeric)
+        collegeMatches.sort((a,b)=>{
+          const ma = Number(String(a.merit_no||'').replace(/\D/g,''))||Infinity;
+          const mb = Number(String(b.merit_no||'').replace(/\D/g,''))||Infinity;
+          return ma - mb;
+        });
+        renderCollegeResults(collegeMatches, filterCollege.value);
+        return;
+      }
+
+      // Apply college and gender filters to search matches
+      matches = matches.filter(r => {
+        try{
+          if(fc && fc !== 'ALL' && fc !== ''){
+            const rc = normalize(r.college_name);
+            if(rc !== fc) return false;
+          }
+          if(fg && fg !== 'ALL' && fg !== ''){
+            const rg = normalize(r.gender);
+            if(rg !== fg) return false;
+          }
+          return true;
+        }catch(e){ return false }
+      });
+
+      renderResults(matches, raw);
+    }
+
+    // Debounce input
+    let debounceTimer;
+    qEl.addEventListener('input', () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(doSearch, 200); });
+    document.getElementById('searchBtn').addEventListener('click', doSearch);
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      qEl.value = '';
+      filterCollege.value = 'All';
+      filterGender.value = 'All';
+      resultsEl.innerHTML=''; matchCountEl.textContent=''; emptyStateEl.style.display='block';
     });
-  }
-  renderResults(matches, raw);
-}
 
-let debounceTimer;
-document.getElementById('q').addEventListener('input', () => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(doSearch, 120);
-});
-</script>
+    // Re-run search when filters change (college and gender). College selection should show college list even when search empty.
+    [filterCollege, filterGender].forEach(el => el.addEventListener('change', () => { doSearch(); }));
 
+    // Trigger search on Enter key
+    qEl.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); doSearch(); } });
+
+    // --- College results rendering and pagination ---
+    let collegeRenderMatches = [];
+    let collegeRenderIndex = 0;
+    const collegePageSize = 200;
+
+    function renderCollegeResults(matches, collegeName){
+      collegeRenderMatches = matches;
+      collegeRenderIndex = 0;
+      emptyStateEl.style.display = 'none';
+      // Header
+      const header = `
+        <div class="college-results">
+          <div class="students-info">
+            <div>
+              <div style="font-weight:800;font-size:16px">Students Allotted to</div>
+              <div style="font-weight:700;font-size:15px;margin-top:4px">${escapeHtml(collegeName)}</div>
+              <div style="color:var(--muted);margin-top:6px">CAP-II • 2026 &nbsp;&middot;&nbsp; <span style="font-weight:700">${matches.length.toLocaleString()}</span> students found</div>
+            </div>
+            <div style="text-align:right;color:var(--muted);font-size:13px">Sorted by Merit No.</div>
+          </div>
+          <div id="college-table-container"></div>
+        </div>
+      `;
+      resultsEl.innerHTML = header;
+      renderCollegePage();
+    }
+
+    function renderCollegePage(){
+      const container = document.getElementById('college-table-container');
+      if(!container) return;
+      const start = collegeRenderIndex;
+      const end = Math.min(collegeRenderMatches.length, collegeRenderIndex + collegePageSize);
+      // If first page, create table
+      if(start === 0){
+        const table = document.createElement('table'); table.className = 'students';
+        const thead = document.createElement('thead');
+        thead.innerHTML = `<tr><th>Sr. No.</th><th>Candidate Name</th><th>Application ID</th><th>Branch</th><th>Merit No.</th><th>Merit Score</th><th>Gender</th><th>Category</th><th>Seat Type</th></tr>`;
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody'); tbody.id = 'college-tbody'; table.appendChild(tbody);
+        container.appendChild(table);
+      }
+      const tbody = document.getElementById('college-tbody');
+      for(let i=start;i<end;i++){
+        const r = collegeRenderMatches[i];
+        const tr = document.createElement('tr');
+        const sr = i+1;
+        const genderLabel = (r.gender === 'M' ? 'Male' : (r.gender === 'F' ? 'Female' : (r.gender || '')));
+        tr.innerHTML = `
+          <td data-label="Sr. No.">${sr}</td>
+          <td data-label="Candidate">${escapeHtml(r.name||'')}</td>
+          <td data-label="Application ID">${escapeHtml(r.application_id||'')}</td>
+          <td data-label="Branch">${escapeHtml(r.branch_name||'')}</td>
+          <td data-label="Merit No.">${escapeHtml(r.merit_no||'')}</td>
+          <td data-label="Merit Score">${escapeHtml(r.merit_score||'')}</td>
+          <td data-label="Gender">${escapeHtml(genderLabel)}</td>
+          <td data-label="Category">${escapeHtml(r.category||'')}</td>
+          <td data-label="Seat Type">${escapeHtml(r.seat_type||'')}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      collegeRenderIndex = end;
+      // Load more button
+      let moreBtn = document.getElementById('college-load-more');
+      if(collegeRenderIndex < collegeRenderMatches.length){
+        if(!moreBtn){
+          moreBtn = document.createElement('button'); moreBtn.id = 'college-load-more'; moreBtn.className='load-more'; moreBtn.textContent = 'Load more';
+          moreBtn.addEventListener('click', () => { renderCollegePage(); });
+          container.appendChild(moreBtn);
+        }
+      } else {
+        if(moreBtn) moreBtn.remove();
+      }
+      // update matchCountEl
+      matchCountEl.textContent = `${collegeRenderMatches.length.toLocaleString()} students allotted`;
+    }
+
+  </script>
 </body>
 </html>
