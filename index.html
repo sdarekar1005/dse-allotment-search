@@ -60,6 +60,20 @@
     padding:14px 16px; border-radius:10px; font-size:13.5px; line-height:1.5;
   }
   code{background:#eee; padding:1px 5px; border-radius:4px; font-size:12.5px;}
+
+  .social-links{
+    display:flex; gap:10px; margin-top:14px;
+  }
+  .social-links a{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12.5px; font-weight:700; text-decoration:none;
+    color:#fff; background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.35);
+    padding:7px 13px; border-radius:99px;
+    transition:background .15s ease;
+  }
+  .social-links a:hover{background:rgba(255,255,255,.26);}
+  .social-links svg{width:14px; height:14px; flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -67,6 +81,16 @@
 <header>
   <h1>DSE 2026 &middot; Allotment Search</h1>
   <p>Search across all downloaded institute allotment lists by Application ID or candidate name.</p>
+  <div class="social-links">
+    <a href="https://www.linkedin.com/in/prathmesh-surywanshi/" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+      LinkedIn
+    </a>
+    <a href="https://github.com/Prathmesh-Surywanshi" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.2c0 4.5 2.87 8.31 6.84 9.66.5.1.68-.22.68-.5 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.31.1-2.72 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .28.18.61.69.5A10.02 10.02 0 0 0 22 12.2C22 6.58 17.52 2 12 2z"/></svg>
+      GitHub
+    </a>
+  </div>
 </header>
 
 <main>
