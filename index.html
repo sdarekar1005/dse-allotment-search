@@ -61,6 +61,10 @@
     .students-info { display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:8px }
     .load-more { display:inline-block; margin-top:10px; padding:8px 12px; border-radius:10px; background:#eef7f4; color:var(--accent-2); border:1px solid #e2f1ec; cursor:pointer }
     .student-card { border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--card); }
+    .dept-card { min-width:220px; background:#fff; border:1px solid var(--line); padding:12px 14px; border-radius:10px; display:flex;justify-content:space-between;align-items:center;gap:8px; cursor:pointer; transition:box-shadow .12s ease,transform .06s ease, border-color .12s ease }
+    .dept-card:hover{ box-shadow:0 10px 20px rgba(12,20,26,0.06); transform:translateY(-4px); border-color:rgba(6,109,90,0.08) }
+    .dept-card .meta{color:var(--muted);font-size:13px}
+    .dept-card .arrow{font-weight:800;color:var(--accent-2);font-size:16px}
     .card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--line);box-shadow:0 6px 18px rgba(12,20,26,0.04)}
     .card .top{display:flex;justify-content:space-between;gap:8px;align-items:center}
     .college{font-weight:800;color:var(--accent-2);font-size:15px}
@@ -388,7 +392,12 @@
           const mb = Number(String(b.merit_no||'').replace(/\D/g,''))||Infinity;
           return ma - mb;
         });
-        renderCollegeResults(collegeMatches, filterCollege.value);
+        collegeRenderMatches = collegeMatches;
+        if(currentBranchSelected){
+          renderBranchView(currentBranchSelected, filterCollege.value);
+        } else {
+          renderCollegeResults(collegeMatches, filterCollege.value);
+        }
         return;
       }
 
@@ -406,6 +415,23 @@
           return true;
         }catch(e){ return false }
       });
+
+      // If a college is selected, show the college-wise summary + student list (filtered by search and gender)
+      if(collegeSelected){
+        // sort by merit_no ascending
+        matches.sort((a,b)=>{
+          const ma = Number(String(a.merit_no||'').replace(/\D/g,''))||Infinity;
+          const mb = Number(String(b.merit_no||'').replace(/\D/g,''))||Infinity;
+          return ma - mb;
+        });
+        collegeRenderMatches = matches;
+        if(currentBranchSelected){
+          renderBranchView(currentBranchSelected, filterCollege.value);
+        } else {
+          renderCollegeResults(matches, filterCollege.value);
+        }
+        return;
+      }
 
       renderResults(matches, raw);
     }
@@ -431,27 +457,173 @@
     let collegeRenderMatches = [];
     let collegeRenderIndex = 0;
     const collegePageSize = 200;
+    // Branch drill-down state
+    let currentBranchSelected = null;
+    let branchRenderMatches = [];
+    let branchRenderIndex = 0;
 
     function renderCollegeResults(matches, collegeName){
       collegeRenderMatches = matches;
       collegeRenderIndex = 0;
       emptyStateEl.style.display = 'none';
-      // Header
+      // Department summary calculation
+      const deptMap = new Map();
+      matches.forEach(r => {
+        const b = (r.branch_name || 'Unknown').trim();
+        const key = b || 'Unknown';
+        const prev = deptMap.get(key) || 0; deptMap.set(key, prev + 1);
+      });
+      const depts = Array.from(deptMap.entries()).map(([name,count])=>({name, count}));
+      depts.sort((a,b)=> b.count - a.count || a.name.localeCompare(b.name));
+
+      // Build department boxes
+      const deptBoxes = depts.map(d => `
+        <div class="dept-card" data-branch="${escapeHtml(d.name)}">
+          <div>
+            <div style="font-weight:700">${escapeHtml(d.name)}</div>
+            <div class="meta">${d.count.toLocaleString()} Students</div>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+      `).join('');
+
+      // If no matches, render an empty message with header
+      if(matches.length === 0){
+        resultsEl.innerHTML = `
+          <div class="college-results">
+            <div style="margin-bottom:12px">
+              <div style="font-weight:800;font-size:18px">${escapeHtml(collegeName)}</div>
+              <div style="color:var(--muted);margin-top:6px">CAP-II • 2026</div>
+              <div style="font-weight:700;margin-top:8px">Total Allotments: 0 Students</div>
+            </div>
+            <div class="empty">No students found for this college and filter selection.</div>
+          </div>
+        `;
+        matchCountEl.textContent = `0 students allotted`;
+        return;
+      }
+
+      // Header + department summary + students placeholder
       const header = `
         <div class="college-results">
-          <div class="students-info">
-            <div>
-              <div style="font-weight:800;font-size:16px">Students Allotted to</div>
-              <div style="font-weight:700;font-size:15px;margin-top:4px">${escapeHtml(collegeName)}</div>
-              <div style="color:var(--muted);margin-top:6px">CAP-II • 2026 &nbsp;&middot;&nbsp; <span style="font-weight:700">${matches.length.toLocaleString()}</span> students found</div>
-            </div>
-            <div style="text-align:right;color:var(--muted);font-size:13px">Sorted by Merit No.</div>
+          <div style="margin-bottom:12px">
+            <div style="font-weight:800;font-size:18px">${escapeHtml(collegeName)}</div>
+            <div style="color:var(--muted);margin-top:6px">CAP-II • 2026</div>
+            <div style="font-weight:700;margin-top:8px">Total Allotments: ${matches.length.toLocaleString()} Students</div>
           </div>
+
+          <hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+
+          <div style="font-weight:800;margin-bottom:8px">Department-wise Allotments</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">${deptBoxes}</div>
+
+          <hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+
+          <div style="font-weight:800;margin-bottom:6px">All Allotted Students</div>
+          <div style="color:var(--muted);margin-bottom:10px">Showing <strong id="college-showing-count">${matches.length.toLocaleString()}</strong> students</div>
+
           <div id="college-table-container"></div>
         </div>
       `;
       resultsEl.innerHTML = header;
+      // Attach branch click listeners
+      attachDeptCardListeners();
       renderCollegePage();
+    }
+
+    function attachDeptCardListeners(){
+      const cards = resultsEl.querySelectorAll('.dept-card');
+      cards.forEach(card => {
+        const branch = card.getAttribute('data-branch');
+        card.addEventListener('click', () => {
+          currentBranchSelected = branch;
+          // ensure collegeRenderMatches is current (already set in renderCollegeResults)
+          renderBranchView(branch, filterCollege.value);
+        });
+      });
+    }
+
+    function renderBranchView(branchName, collegeName){
+      // Filter from current collegeRenderMatches to include current search/gender state
+      branchRenderMatches = (collegeRenderMatches || []).filter(r => normalize(r.branch_name) === normalize(branchName));
+      // Sort by merit
+      branchRenderMatches.sort((a,b)=>{
+        const ma = Number(String(a.merit_no||'').replace(/\D/g,''))||Infinity;
+        const mb = Number(String(b.merit_no||'').replace(/\D/g,''))||Infinity;
+        return ma - mb;
+      });
+      branchRenderIndex = 0;
+      emptyStateEl.style.display = 'none';
+      const header = `
+        <div class="college-results">
+          <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <div>
+              <div style="font-weight:800;font-size:16px">${escapeHtml(branchName)}</div>
+              <div style="color:var(--muted);margin-top:6px">${branchRenderMatches.length.toLocaleString()} Students Allotted</div>
+              <div style="color:var(--muted);margin-top:6px">CAP-II • 2026</div>
+            </div>
+            <div style="text-align:right">
+              <button id="branch-back" class="btn-muted">← Back to All Departments</button>
+            </div>
+          </div>
+          <div id="branch-table-container"></div>
+        </div>
+      `;
+      resultsEl.innerHTML = header;
+      const backBtn = document.getElementById('branch-back');
+      if(backBtn) backBtn.addEventListener('click', () => { currentBranchSelected = null; renderCollegeResults(collegeRenderMatches, filterCollege.value); });
+      renderBranchPage();
+    }
+
+    function renderBranchPage(){
+      const container = document.getElementById('branch-table-container');
+      if(!container) return;
+      const start = branchRenderIndex;
+      const end = Math.min(branchRenderMatches.length, branchRenderIndex + collegePageSize);
+      // If first page, create table
+      if(start === 0){
+        const table = document.createElement('table'); table.className = 'students';
+        const thead = document.createElement('thead');
+        thead.innerHTML = `<tr><th>Sr. No.</th><th>Candidate Name</th><th>Application ID</th><th>College</th><th>Branch</th><th>Branch Code</th><th>Merit No.</th><th>Merit Score</th><th>Gender</th><th>Category</th><th>Seat Type</th><th>CAP Round</th></tr>`;
+        table.appendChild(thead);
+        const tbody = document.createElement('tbody'); tbody.id = 'branch-tbody'; table.appendChild(tbody);
+        container.appendChild(table);
+      }
+      const tbody = document.getElementById('branch-tbody');
+      for(let i=start;i<end;i++){
+        const r = branchRenderMatches[i];
+        const tr = document.createElement('tr');
+        const sr = i+1;
+        const genderLabel = (r.gender === 'M' ? 'Male' : (r.gender === 'F' ? 'Female' : (r.gender || '')));
+        tr.innerHTML = `
+          <td data-label="Sr. No.">${sr}</td>
+          <td data-label="Candidate">${escapeHtml(r.name||'')}</td>
+          <td data-label="Application ID">${escapeHtml(r.application_id||'')}</td>
+          <td data-label="College">${escapeHtml(r.college_name||'')}</td>
+          <td data-label="Branch">${escapeHtml(r.branch_name||'')}</td>
+          <td data-label="Branch Code">${escapeHtml(r.branch_code||'')}</td>
+          <td data-label="Merit No.">${escapeHtml(r.merit_no||'')}</td>
+          <td data-label="Merit Score">${escapeHtml(r.merit_score||'')}</td>
+          <td data-label="Gender">${escapeHtml(genderLabel)}</td>
+          <td data-label="Category">${escapeHtml(r.category||'')}</td>
+          <td data-label="Seat Type">${escapeHtml(r.seat_type||'')}</td>
+          <td data-label="CAP Round">${escapeHtml(r.cap_round||'CAP-II')}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      branchRenderIndex = end;
+      // Load more button
+      let moreBtn = document.getElementById('branch-load-more');
+      if(branchRenderIndex < branchRenderMatches.length){
+        if(!moreBtn){
+          moreBtn = document.createElement('button'); moreBtn.id = 'branch-load-more'; moreBtn.className='load-more'; moreBtn.textContent = 'Load more';
+          moreBtn.addEventListener('click', () => { renderBranchPage(); });
+          container.appendChild(moreBtn);
+        }
+      } else {
+        if(moreBtn) moreBtn.remove();
+      }
+      matchCountEl.textContent = `${branchRenderMatches.length.toLocaleString()} students allotted`;
     }
 
     function renderCollegePage(){
