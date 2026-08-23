@@ -12,7 +12,7 @@ if found:
     print('College:', r.get('college_name'))
     print('Branch:', r.get('branch_name'))
     print('Candidate:', r.get('name'))
-        print('Round:', r.get('round'))
+    print('Round:', r.get('round'))
     print('Merit No:', r.get('merit_no'))
     print('Merit Score:', r.get('merit_score'))
 # find by name

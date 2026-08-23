@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>DSE 2026 CAP-II Allotment Search</title>
+  <title>DSE 2026 CAP Allotment Search</title>
   <style>
     :root{
       --bg:#f5f7f9; --card:#ffffff; --muted:#556069; --accent:#066d5a; --accent-2:#0b5a4b;
@@ -54,22 +54,26 @@
 
     .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
     /* College results table */
-    .college-results { background:var(--card); border-radius:12px; padding:12px; border:1px solid var(--line); }
-    table.students { width:100%; border-collapse:collapse; font-size:14px }
-    table.students th, table.students td { padding:8px 10px; border-bottom:1px solid #f1f4f3; text-align:left }
+    .college-results { background:var(--card); border-radius:12px; padding:12px; border:1px solid var(--line); height:auto; min-height:0; min-width:0; width:100%; overflow:visible; }
+    #results > .college-results { grid-column:1 / -1; }
+    #college-table-container, #branch-table-container { width:100%; min-width:0; overflow-x:auto; overflow-y:hidden; }
+    table.students { width:100%; min-width:1050px; height:auto; border-collapse:collapse; table-layout:auto; font-size:14px }
+    table.students th, table.students td { padding:8px 10px; border-bottom:1px solid #f1f4f3; text-align:left; vertical-align:top; overflow-wrap:break-word; word-break:normal; white-space:normal }
     table.students th { font-weight:700; color:var(--accent-2); font-size:13px }
     .students-info { display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:8px }
     .load-more { display:inline-block; margin-top:10px; padding:8px 12px; border-radius:10px; background:#eef7f4; color:var(--accent-2); border:1px solid #e2f1ec; cursor:pointer }
-    .student-card { border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--card); }
-    .dept-card { min-width:220px; background:#fff; border:1px solid var(--line); padding:12px 14px; border-radius:10px; display:flex;justify-content:space-between;align-items:center;gap:8px; cursor:pointer; transition:box-shadow .12s ease,transform .06s ease, border-color .12s ease }
+    .student-card { border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--card); height:auto; min-height:0; min-width:0; overflow-wrap:break-word; word-break:normal; }
+    .dept-card { min-width:220px; min-height:0; height:auto; background:#fff; border:1px solid var(--line); padding:12px 14px; border-radius:10px; display:flex;justify-content:space-between;align-items:center;gap:8px; cursor:pointer; transition:box-shadow .12s ease,transform .06s ease, border-color .12s ease }
     .dept-card:hover{ box-shadow:0 10px 20px rgba(12,20,26,0.06); transform:translateY(-4px); border-color:rgba(6,109,90,0.08) }
     .dept-card .meta{color:var(--muted);font-size:13px}
     .dept-card .arrow{font-weight:800;color:var(--accent-2);font-size:16px}
     .card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--line);box-shadow:0 6px 18px rgba(12,20,26,0.04)}
     .card .top{display:flex;justify-content:space-between;gap:8px;align-items:center}
-    .college{font-weight:800;color:var(--accent-2);font-size:15px}
+    .college{font-weight:800;color:var(--accent-2);font-size:15px;min-width:0;overflow-wrap:break-word;word-break:normal;white-space:normal}
     .codes{font-size:12px;color:var(--muted)}
-    .branch{margin:8px 0;font-weight:700}
+    .branch{margin:8px 0;font-weight:700;min-width:0;overflow-wrap:break-word;word-break:normal;white-space:normal}
+    .college-results > div[style*="display:flex"]{flex-wrap:wrap;min-width:0}
+    .college-results .btn-muted{max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:normal;text-align:center}
     .tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
     .pill{background:#f2f8f6;color:var(--accent-2);padding:6px 9px;border-radius:999px;font-size:12px;border:1px solid #e2f1ec}
 
@@ -103,12 +107,14 @@
       .search-row{flex-direction:column}
       .filters{flex-direction:column;align-items:stretch}
       main{padding:12px}
-      /* table -> cards on mobile */
-      table.students, table.students thead, table.students tbody, table.students th, table.students td, table.students tr { display:block }
-      table.students thead { display:none }
-      table.students tr { margin-bottom:10px }
-      table.students td { border:0; padding:6px 0 }
-      table.students td::before { content:attr(data-label); font-weight:700; display:inline-block; width:110px; color:var(--muted) }
+      /* Keep full table columns accessible through the horizontal scroller on mobile. */
+      table.students, table.students thead, table.students tbody, table.students th, table.students td, table.students tr { display:table }
+      table.students { display:table; width:max-content; min-width:1050px }
+      table.students thead { display:table-header-group }
+      table.students tbody { display:table-row-group }
+      table.students tr { display:table-row }
+      table.students th, table.students td { display:table-cell; border-bottom:1px solid #f1f4f3; padding:8px 10px }
+      table.students td::before { display:none }
     }
   </style>
 </head>
@@ -126,10 +132,10 @@
             </svg>
           </div>
           <div>
-            <h1 style="margin:0;font-size:22px">DSE 2026 CAP-II Allotment Search</h1>
+            <h1 style="margin:0;font-size:22px">DSE 2026 CAP Allotment Search</h1>
             <p style="margin:6px 0 0;font-size:14px;opacity:0.95">Find your Direct Second Year Engineering allotment quickly and easily.</p>
             <div style="margin-top:8px">
-              <span style="display:inline-block;background:rgba(255,255,255,0.08);color:#fff;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px">CAP-II • 2026</span>
+              <span style="display:inline-block;background:rgba(255,255,255,0.08);color:#fff;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px">CAP • 2026</span>
             </div>
           </div>
         </div>
@@ -161,7 +167,7 @@
         <div class="search-row">
           <div style="position:relative;flex:1">
             <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:0.6;pointer-events:none;color:var(--muted)"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-            <input id="q" type="text" placeholder="Application ID (e.g. DSE26142848) or candidate name (any word order)" aria-label="Search query" autofocus style="padding-left:40px">
+            <input id="q" type="text" placeholder="Application ID (e.g. DSE26104051) or candidate name" aria-label="Search query" autofocus style="padding-left:40px">
           </div>
           <div class="actions">
             <button id="searchBtn" class="btn-primary" title="Search">
@@ -181,7 +187,14 @@
         <div style="display:flex;align-items:center;gap:12px">
           <div style="font-weight:700">Filters</div>
           <div style="flex:1"></div>
-          <div style="background:#eaf6f1;color:var(--accent-2);padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px">CAP-II</div>
+          <div>
+            <label for="roundSelect" style="font-weight:700;font-size:13px;margin-right:8px;color:var(--muted)">CAP Round</label>
+            <select id="roundSelect" title="CAP Round" style="padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:#eaf6f1;color:var(--accent-2);font-weight:700;font-size:13px">
+              <option value="round1">CAP-I • 2026</option>
+              <option value="round2" selected>CAP-II • 2026</option>
+              <option value="round3">CAP-III • 2026</option>
+            </select>
+          </div>
         </div>
         <div class="filters">
           <select id="filterCollege" title="College">
@@ -189,6 +202,9 @@
           </select>
           <select id="filterGender" title="Gender">
             <option value="All">All Genders</option>
+          </select>
+          <select id="filterCategory" title="Category">
+            <option value="All">All Categories</option>
           </select>
         </div>
       </div>
@@ -215,7 +231,7 @@
     <footer>
       <div class="footer-grid container">
         <div class="footer-left">
-          <div style="font-weight:700">DSE 2026 CAP-II Allotment Search</div>
+          <div style="font-weight:700">DSE 2026 CAP Allotment Search</div>
           <div style="margin-top:6px">Built with HTML, CSS & JavaScript</div>
         </div>
         <div class="social-footer" aria-label="Connect with me">
@@ -250,35 +266,146 @@
 
     const filterCollege = document.getElementById('filterCollege');
     const filterGender = document.getElementById('filterGender');
+    const filterCategory = document.getElementById('filterCategory');
 
-    async function loadData(){
-      try{
-        statusEl.textContent = 'Loading allotment_data.json — please wait…';
-        const res = await fetch('allotment_data.json');
-        if(!res.ok) throw new Error('HTTP ' + res.status);
-        DATA = await res.json();
+    // Round file mapping and caching
+    const ROUND_FILES = {
+      round1: 'data/allotments_round1.json',
+      round2: 'data/allotments_round2.json',
+      round3: 'data/allotments_round3.json'
+    };
+    const ROUND_LABELS = {
+      round1: 'CAP-I • 2026',
+      round2: 'CAP-II • 2026',
+      round3: 'CAP-III • 2026'
+    };
+    let selectedRound = 'round2'; // default
+    let currentRoundLabel = ROUND_LABELS[selectedRound];
+    const DATA_CACHE = {};
+    const roundSelect = document.getElementById('roundSelect');
+
+    function normalizeRecord(r, roundLabel){
+      return {
+        name: r.name || r.candidate || r.full_name || r.student_name || '',
+        application_id: r.application_id || r.applicationId || r.appId || r.app_id || '',
+        college_name: r.college_name || r.collegeName || r.college || r.institute || '',
+        branch_name: r.branch_name || r.branch || r.course || '',
+        merit_no: r.merit_no || r.meritNo || r.merit_number || r.sr_no || '',
+        merit_score: r.merit_score || r.score || r.marks || '',
+        gender: r.gender || r.sex || '',
+        category: r.category || '',
+        seat_type: r.seat_type || r.seatType || '',
+        college_code: r.college_code || r.collegeCode || '',
+        branch_code: r.branch_code || r.branchCode || r.courseCode || '',
+        cap_round: roundLabel
+      };
+    }
+
+    async function loadRound(roundKey, preservedFilters = {}){
+      selectedRound = roundKey;
+      currentRoundLabel = ROUND_LABELS[roundKey] || '';
+      // CAP-III: show placeholder
+      if(roundKey === 'round3'){
+        statusEl.textContent = 'CAP-III allotment data is not available yet.';
+        DATA = [];
+        loaded = false;
+        loadedCountEl.textContent = '0';
+        resultsEl.innerHTML = `<div class="empty">CAP-III allotment data is not available yet. Data will be added after the official CAP-III allotment is released.</div>`;
+        matchCountEl.textContent = '';
+        emptyStateEl.style.display = 'none';
+        filterCollege.innerHTML = '<option value="All">All Colleges</option>';
+        filterGender.innerHTML = '<option value="All">All Genders</option>';
+        filterCategory.innerHTML = '<option value="All">All Categories</option>';
+        filterCollege.value = 'All'; filterGender.value = 'All'; filterCategory.value = 'All';
+        return;
+      }
+
+      const url = ROUND_FILES[roundKey];
+      if(DATA_CACHE[roundKey]){
+        DATA = DATA_CACHE[roundKey];
         loaded = true;
         loadedCountEl.textContent = DATA.length.toLocaleString();
-        statusEl.innerHTML = `Loaded <strong style="color:var(--accent)">${DATA.length.toLocaleString()}</strong> allotment records.`;
-        populateFilterOptions();
+        statusEl.innerHTML = `Loaded <strong style="color:var(--accent)">${DATA.length.toLocaleString()}</strong> allotment records (${currentRoundLabel}).`;
+        populateFilterOptions(preservedFilters);
+        return;
+      }
+
+      try{
+        statusEl.textContent = `Loading ${currentRoundLabel} allotment data...`;
+        const res = await fetch(url);
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        const raw = await res.json();
+        const normalized = Array.isArray(raw) ? raw.map(r => normalizeRecord(r, currentRoundLabel)) : [];
+        DATA = normalized;
+        DATA_CACHE[roundKey] = DATA;
+        loaded = true;
+        loadedCountEl.textContent = DATA.length.toLocaleString();
+        statusEl.innerHTML = `Loaded <strong style="color:var(--accent)">${DATA.length.toLocaleString()}</strong> allotment records (${currentRoundLabel}).`;
+        populateFilterOptions(preservedFilters);
       }catch(err){
-        statusEl.innerHTML = `<div style="background:#fdecec;border:1px solid #f3c7c7;color:#8a2c2c;padding:12px;border-radius:8px">Couldn't load <code>allotment_data.json</code>. Run a local server: <code>python -m http.server 8000</code> and open <code>http://localhost:8000/</code></div>`;
+        DATA = [];
+        loaded = false;
+        loadedCountEl.textContent = '0';
+        filterCollege.innerHTML = '<option value="All">All Colleges</option>';
+        filterGender.innerHTML = '<option value="All">All Genders</option>';
+        filterCategory.innerHTML = '<option value="All">All Categories</option>';
+        filterCollege.value = 'All';
+        filterGender.value = 'All';
+        filterCategory.value = 'All';
+        // If the round file is missing (404), show explicit instructions to download the official CAP-I file
+        if(err && String(err.message).includes('HTTP 404')){
+          const rawUrl = 'https://raw.githubusercontent.com/yashrajhande/Dse_allotment_2026/main/data/allotments_round1.json';
+          statusEl.innerHTML = `
+            <div style="background:#fff4e5;border:1px solid #f3d7b7;color:#6b3e00;padding:12px;border-radius:8px">
+              Couldn't find <code>${url}</code> (404). To load CAP-I data, download the official file from the repository and save it to <strong>data/allotments_round1.json</strong> in this project.<br>
+              <div style="margin-top:8px"><a href="${rawUrl}" target="_blank" rel="noopener" style="font-weight:700;color:var(--accent)">Open CAP-I file on GitHub (raw)</a></div>
+              <div style="margin-top:8px;color:var(--muted);font-size:13px">After placing the file, reload this page to load CAP-I data.</div>
+            </div>
+          `;
+          resultsEl.innerHTML = `<div class="empty">CAP-I file is missing. Download the official file from the GitHub repo and place it at <strong>data/allotments_round1.json</strong>.</div>`;
+        } else {
+          statusEl.innerHTML = `<div style="background:#fdecec;border:1px solid #f3c7c7;color:#8a2c2c;padding:12px;border-radius:8px">Couldn't load ${url}. ${err.message}</div>`;
+        }
       }
     }
-    loadData();
+
+    // load default round (CAP-II)
+    loadRound(selectedRound);
+
+    // handle round selection changes
+    roundSelect.addEventListener('change', async (e) => {
+      const rv = e.target.value;
+      const preservedFilters = {
+        college: filterCollege.value,
+        gender: filterGender.value,
+        category: filterCategory.value
+      };
+      // Preserve the query and selected filters while loading the new round.
+      currentBranchSelected = null;
+      resultsEl.innerHTML = ''; matchCountEl.textContent = ''; emptyStateEl.style.display='block';
+      await loadRound(rv, preservedFilters);
+      if(rv !== 'round3' && loaded) doSearch();
+    });
 
     function escapeHtml(s){
       return String(s).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
     }
 
-    function populateFilterOptions(){
+    function populateFilterOptions(preservedFilters = {}){
       // Gather unique values from DATA for college name and gender
       const colleges = new Set();
       const genders = new Set();
+      const categories = new Set();
       DATA.forEach(r => {
         if(r.college_name) colleges.add(String(r.college_name).trim());
         if(r.gender) genders.add(String(r.gender).trim());
+        const category = normalizeCategory(r.category);
+        if(category) categories.add(category);
       });
+
+      filterCollege.innerHTML = '<option value="All">All Colleges</option>';
+      filterGender.innerHTML = '<option value="All">All Genders</option>';
+      filterCategory.innerHTML = '<option value="All">All Categories</option>';
 
       const addOptions = (sel, values, labelFn) => {
         const arr = Array.from(values).sort((a,b)=> a.localeCompare(b));
@@ -293,16 +420,32 @@
         if(up === 'F') return 'Female';
         return v;
       });
-      // ensure default selections
-      filterCollege.value = 'All';
-      filterGender.value = 'All';
+      addOptions(filterCategory, categories);
+      const restoreSelection = (select, value) => {
+        const hasValue = value && Array.from(select.options).some(option => option.value === value);
+        select.value = hasValue ? value : 'All';
+      };
+      // Keep a selection only when the new round contains that option.
+      restoreSelection(filterCollege, preservedFilters.college);
+      restoreSelection(filterGender, preservedFilters.gender);
+      restoreSelection(filterCategory, preservedFilters.category);
+    }
+
+    // Used only for category options and filtering; original category text stays unchanged.
+    function normalizeCategory(value){
+      const primary = String(value || '').toUpperCase().trim().split('/')[0];
+      const tokens = primary.match(/[A-Z]+(?:-[A-Z]+)?/g) || [];
+      for(let i = tokens.length - 1; i >= 0; i--){
+        if(tokens[i] !== 'M' && tokens[i] !== 'F') return tokens[i];
+      }
+      return '';
     }
 
     function renderResults(matches, query){
       matchCountEl.textContent = `${matches.length.toLocaleString()} allotment(s) found`;
       if(!query){ resultsEl.innerHTML = ''; emptyStateEl.style.display = 'block'; return; }
       emptyStateEl.style.display = 'none';
-      if(matches.length === 0){ resultsEl.innerHTML = `<div class="empty">No matches for "${escapeHtml(query)}"</div>`; return; }
+      if(matches.length === 0){ resultsEl.innerHTML = `<div class="empty">No allotment found in ${escapeHtml(currentRoundLabel)} for "${escapeHtml(query)}".</div>`; return; }
 
       const capped = matches.slice(0, 200);
       resultsEl.innerHTML = capped.map(r => {
@@ -314,7 +457,7 @@
                 <div class="college">${escapeHtml(r.college_name || '')}</div>
                 <div class="codes">College Code: ${escapeHtml(r.college_code || '')} · Branch Code: ${escapeHtml(r.branch_code || '')}</div>
               </div>
-              <div style="text-align:right;font-size:12px;color:${'#556069'}"><span style="background:#eaf6f1;padding:6px 8px;border-radius:999px;font-weight:700">CAP-II</span></div>
+              <div style="text-align:right;font-size:12px;color:${'#556069'}"><span style="background:#eaf6f1;padding:6px 8px;border-radius:999px;font-weight:700">${escapeHtml(r.cap_round || currentRoundLabel)}</span></div>
             </div>
             <div class="branch">${escapeHtml(r.branch_name || '')}</div>
             <div class="tags">
@@ -373,8 +516,9 @@
       // If search is empty but a college is selected, show all students for that college
       const fc = normalize(filterCollege.value);
       const fg = normalize(filterGender.value);
+      const fcat = normalizeCategory(filterCategory.value);
       if(!raw && collegeSelected){
-        // Filter DATA by college and gender
+        // Filter DATA by college, gender, and normalized category
         let collegeMatches = DATA.filter(r => {
           try{
             const rc = normalize(r.college_name);
@@ -382,6 +526,9 @@
             if(fg && fg !== 'ALL' && fg !== ''){
               const rg = normalize(r.gender);
               if(rg !== fg) return false;
+            }
+            if(fcat && fcat !== 'ALL'){
+              if(normalizeCategory(r.category) !== fcat) return false;
             }
             return true;
           }catch(e){ return false }
@@ -411,6 +558,9 @@
           if(fg && fg !== 'ALL' && fg !== ''){
             const rg = normalize(r.gender);
             if(rg !== fg) return false;
+          }
+          if(fcat && fcat !== 'ALL'){
+            if(normalizeCategory(r.category) !== fcat) return false;
           }
           return true;
         }catch(e){ return false }
@@ -444,11 +594,12 @@
       qEl.value = '';
       filterCollege.value = 'All';
       filterGender.value = 'All';
+      filterCategory.value = 'All';
       resultsEl.innerHTML=''; matchCountEl.textContent=''; emptyStateEl.style.display='block';
     });
 
-    // Re-run search when filters change (college and gender). College selection should show college list even when search empty.
-    [filterCollege, filterGender].forEach(el => el.addEventListener('change', () => { doSearch(); }));
+    // Re-run search when filters change. College selection shows its list even when search is empty.
+    [filterCollege, filterGender, filterCategory].forEach(el => el.addEventListener('change', () => { doSearch(); }));
 
     // Trigger search on Enter key
     qEl.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); doSearch(); } });
@@ -493,7 +644,7 @@
           <div class="college-results">
             <div style="margin-bottom:12px">
               <div style="font-weight:800;font-size:18px">${escapeHtml(collegeName)}</div>
-              <div style="color:var(--muted);margin-top:6px">CAP-II • 2026</div>
+              <div style="color:var(--muted);margin-top:6px">${escapeHtml(currentRoundLabel)}</div>
               <div style="font-weight:700;margin-top:8px">Total Allotments: 0 Students</div>
             </div>
             <div class="empty">No students found for this college and filter selection.</div>
@@ -508,7 +659,7 @@
         <div class="college-results">
           <div style="margin-bottom:12px">
             <div style="font-weight:800;font-size:18px">${escapeHtml(collegeName)}</div>
-            <div style="color:var(--muted);margin-top:6px">CAP-II • 2026</div>
+            <div style="color:var(--muted);margin-top:6px">${escapeHtml(currentRoundLabel)}</div>
             <div style="font-weight:700;margin-top:8px">Total Allotments: ${matches.length.toLocaleString()} Students</div>
           </div>
 
@@ -560,7 +711,7 @@
             <div>
               <div style="font-weight:800;font-size:16px">${escapeHtml(branchName)}</div>
               <div style="color:var(--muted);margin-top:6px">${branchRenderMatches.length.toLocaleString()} Students Allotted</div>
-              <div style="color:var(--muted);margin-top:6px">CAP-II • 2026</div>
+              <div style="color:var(--muted);margin-top:6px">${escapeHtml(currentRoundLabel)}</div>
             </div>
             <div style="text-align:right">
               <button id="branch-back" class="btn-muted">← Back to All Departments</button>
@@ -607,7 +758,7 @@
           <td data-label="Gender">${escapeHtml(genderLabel)}</td>
           <td data-label="Category">${escapeHtml(r.category||'')}</td>
           <td data-label="Seat Type">${escapeHtml(r.seat_type||'')}</td>
-          <td data-label="CAP Round">${escapeHtml(r.cap_round||'CAP-II')}</td>
+          <td data-label="CAP Round">${escapeHtml(r.cap_round || currentRoundLabel)}</td>
         `;
         tbody.appendChild(tr);
       }
