@@ -304,21 +304,6 @@
     async function loadRound(roundKey, preservedFilters = {}){
       selectedRound = roundKey;
       currentRoundLabel = ROUND_LABELS[roundKey] || '';
-      // CAP-III: show placeholder
-      if(roundKey === 'round3'){
-        statusEl.textContent = 'CAP-III allotment data is not available yet.';
-        DATA = [];
-        loaded = false;
-        loadedCountEl.textContent = '0';
-        resultsEl.innerHTML = `<div class="empty">CAP-III allotment data is not available yet. Data will be added after the official CAP-III allotment is released.</div>`;
-        matchCountEl.textContent = '';
-        emptyStateEl.style.display = 'none';
-        filterCollege.innerHTML = '<option value="All">All Colleges</option>';
-        filterGender.innerHTML = '<option value="All">All Genders</option>';
-        filterCategory.innerHTML = '<option value="All">All Categories</option>';
-        filterCollege.value = 'All'; filterGender.value = 'All'; filterCategory.value = 'All';
-        return;
-      }
 
       const url = ROUND_FILES[roundKey];
       if(DATA_CACHE[roundKey]){
@@ -375,6 +360,7 @@
     // handle round selection changes
     roundSelect.addEventListener('change', async (e) => {
       const rv = e.target.value;
+      const preservedQuery = qEl.value.trim();
       const preservedFilters = {
         college: filterCollege.value,
         gender: filterGender.value,
@@ -384,7 +370,8 @@
       currentBranchSelected = null;
       resultsEl.innerHTML = ''; matchCountEl.textContent = ''; emptyStateEl.style.display='block';
       await loadRound(rv, preservedFilters);
-      if(rv !== 'round3' && loaded) doSearch();
+      qEl.value = preservedQuery;
+      if(loaded) doSearch();
     });
 
     function escapeHtml(s){
